@@ -131,7 +131,6 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
     x = layers.Dropout(0.20)(x)
 
     # Block 2 (64 Filters)
-
     x = layers.Conv2D(64, (3,3), padding = "same", kernel_regularizer = 12)(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation("relue")(x)
@@ -156,7 +155,6 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
     x = layers.Dropout(0.40)(x)
 
     # Classifier
-
     x = layers.Flatten()(x)
     x = layers.Dense(256, kernel_regularizer = 12)(x)
     x = layers.BatchNormalization()(x)
@@ -171,3 +169,79 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
 
 model = cnnModel()
 model.summary()
+
+# Configure
+model.compile(optimizer = tf.keras.optimizers.Adam(learningRate = 0.001),
+              loss = "sparseCategoricalCrossentropy",
+              metrics = ["accuracy"])
+
+# Train Model
+BATCH_SIZE = 64
+EPOCHS = 15
+
+goodModelPath = os.path.join(DIR, "goodCifar10Cnn.keras")
+
+callback = [
+    tf.keras.callbacks.ModelCheckpoint(
+        filepath = goodModelPath,
+        monitor = "val accuracy",
+        mode = "max",
+        saveOnly = True,
+        verbose = 1),
+    tf.keras.callbacks.EarlyStopping(
+        monitor = "val accuracy",
+        mode = "max",
+        patience = 7,
+        restore_best_weights = True,
+        verbose = 1),
+    tf.keras.callbacks.ReduceLROnPlateau(
+        monitor = "val loss",
+        factor = "0.5",
+        patience = 3,
+        min_lr = 1e-6,
+        verbose = 1)
+]
+
+history = model.fit(xTrain,
+                    yTrain,
+                    validation_data = (xVal, yVal),
+                    epochs = EPOCHS,
+                    batch_size = BATCH_SIZE,
+                    callbacks = callback,
+                    verbose = 1)
+
+# Training Curve
+def saveTrainingCurves(history, fileName):
+    hist = history.history
+    epochsRange = range(1, len(hist["accuracy"]) + 1)
+
+    plt.figure(figsize = (10, 4))
+    plt. subplot(1, 2, 1)
+    plt.plot(epochsRange, hist["accuracy"], label = "Training Accuracy")
+    plt.plot(epochsRange, hist["val accuracy"], label = "Validation Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Training vs Validation Accuracy")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochsRange, hist["loss"], label = "Training Loss")
+    plt.plot(epochsRange, hist["val_loss"], label = "Validation Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training vs Validation Loss")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(fileName, dpi = 200)
+    plt.close()
+
+trainingCurvesPath = os.path.join(DIR, "trainingCurves.png")
+saveTrainingCurves(history, trainingCurvesPath)
+print(f"\nSaves curves to {trainingCurvesPath}")
+
+# Final Evaluation
+print("\n Test Evaluation")
+testLoss, testAccuracy = model.evaluate(xTest,yTest, batchSize = BATCH_SIZE, verbose = 0)
+print(f"Test Loss: {testLoss: .4f}")
+print(f"Test Accuracy: {testAccuracy: .4f}")
