@@ -109,3 +109,65 @@ dataAugmentation = tf.keras.Sequential([layers.RandomFlip("horizontal"),
                                         layers.RandomRotation(0.08),
                                         layers.RandomZoom(0.10),],
                                         name = "dataAugmentation")
+
+# CNN Model
+def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
+    l2 = regularizers.l2(1e-4)
+
+    inputs = layers.Input(shape = inputShape)
+
+    x = dataAugmentation(inputs)
+
+    # Block 1 (32 filters)
+    x = layers.Conv2D(32, (3,3), padding = "same", kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relue")(x)
+
+    x = layers.Conv2D(32, (3,3), padding = "same", kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+
+    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.Dropout(0.20)(x)
+
+    # Block 2 (64 Filters)
+
+    x = layers.Conv2D(64, (3,3), padding = "same", kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relue")(x)
+
+    x = layers.Conv2D(64, (3,3), padding = "same", kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+    
+    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.Dropout(0.30)(x)
+
+    # Block 3 (128 Filters)
+    x = layers.Conv2D(128, (3,3), kernel_regularizer=12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+
+    x = layers.Conv2D(128, (3,3), kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation()(x)
+
+    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.Dropout(0.40)(x)
+
+    # Classifier
+
+    x = layers.Flatten()(x)
+    x = layers.Dense(256, kernel_regularizer = 12)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+    x = layers.Dropout(0.50)(x)
+
+    outputs = layers.Dense(numClasses, activation = "softmax")(x)
+
+    model = models.Model(inputs = inputs, outputs = outputs, name = "CIFAR10_CNN")
+
+    return model
+
+model = cnnModel()
+model.summary()
