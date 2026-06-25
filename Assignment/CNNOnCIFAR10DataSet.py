@@ -128,7 +128,7 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
     x = layers.Activation("relu")(x)
 
     x = layers.MaxPooling2D((2,2))(x)
-    x = layers.Dropout(0.20)(x)
+    x = layers.Dropout(0.1)(x)
 
     # Block 2 (64 Filters)
     x = layers.Conv2D(64, (3,3), padding = "same", kernel_regularizer = l2)(x)
@@ -140,7 +140,7 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
     x = layers.Activation("relu")(x)
     
     x = layers.MaxPooling2D((2,2))(x)
-    x = layers.Dropout(0.30)(x)
+    x = layers.Dropout(0.1)(x)
 
     # Block 3 (128 Filters)
     x = layers.Conv2D(128, (3,3), kernel_regularizer=l2)(x)
@@ -152,14 +152,14 @@ def cnnModel(inputShape = (32, 32, 3), numClasses = 10):
     x = layers.Activation("relu")(x)
 
     x = layers.MaxPooling2D((2,2))(x)
-    x = layers.Dropout(0.40)(x)
+    x = layers.Dropout(0.1)(x)
 
     # Classifier
     x = layers.Flatten()(x)
     x = layers.Dense(256, kernel_regularizer = l2)(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation("relu")(x)
-    x = layers.Dropout(0.50)(x)
+    x = layers.Dropout(0.4)(x)
 
     outputs = layers.Dense(numClasses, activation = "softmax")(x)
 
@@ -175,9 +175,9 @@ model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = 0.001),
               loss = "sparse_categorical_crossentropy",
               metrics = ["accuracy"])
 
-# Train Model
-BATCH_SIZE = 75
-EPOCHS = 2
+# Train Model  
+BATCH_SIZE = 70
+EPOCHS = 30
 
 good_model_path = os.path.join(DIR, "goodCifar10Cnn.keras")
 
